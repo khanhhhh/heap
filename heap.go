@@ -10,7 +10,7 @@ type Heap interface {
 	Len() int
 	Push(node Node)
 	Pop() (node Node)
-	Delete(nodeTest func(Node) bool)
+	Heapify()
 }
 
 // NewHeap :

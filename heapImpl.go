@@ -1,7 +1,21 @@
 package heap
 
+import "fmt"
+
 type heap struct {
 	array []Node
+}
+
+func (h *heap) heapConsistent() {
+	if len(h.array) > 1 {
+		for i := 0; i < len(h.array); i++ {
+			left, right := childrenOf(i)
+			if (h.inHeap(left) && h.array[left].Less(h.array[i])) || (h.inHeap(right) && h.array[right].Less(h.array[i])) {
+				fmt.Println(i, left, right)
+				panic("heap inconsistent")
+			}
+		}
+	}
 }
 
 func childrenOf(i int) (int, int) {
@@ -62,6 +76,7 @@ func (h *heap) Len() int {
 func (h *heap) Push(node Node) {
 	h.array = append(h.array, node)
 	h.fixHeapBottomUp(len(h.array) - 1)
+	h.heapConsistent()
 }
 
 func (h *heap) Pop() (node Node) {
@@ -73,18 +88,20 @@ func (h *heap) Pop() (node Node) {
 	} else {
 		node = nil
 	}
+	h.heapConsistent()
 	return node
 }
 
-func (h *heap) Delete(nodeTest func(Node) bool) {
-	var i = 0
-	for i < len(h.array) {
-		if nodeTest(h.array[i]) {
-			h.array[i] = h.array[len(h.array)-1]
-			h.array = h.array[:len(h.array)-1]
-			h.fixHeapTopDown(i)
-		} else {
-			i++
-		}
+func (h *heap) heapify(i int) {
+	if !h.isLeaf(i) {
+		left, right := childrenOf(i)
+		h.heapify(left)
+		h.heapify(right)
+		h.fixHeapTopDown(i)
 	}
+}
+
+func (h *heap) Heapify() {
+	h.heapify(0)
+	h.heapConsistent()
 }
