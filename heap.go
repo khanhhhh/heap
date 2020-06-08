@@ -22,7 +22,7 @@ func New() Heap {
 
 // FromArray :
 func FromArray(nodes []Node) Heap {
-	h := &heap{array: nodes}
+	h := &heap{nodes: nodes}
 	h.heapify(0)
 	h.heapConsistent()
 	return h
