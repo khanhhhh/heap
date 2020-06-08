@@ -14,3 +14,16 @@ type Heap interface {
 
 // Debug : Mode
 var Debug bool = true
+
+// New :
+func New() Heap {
+	return &heap{}
+}
+
+// FromArray :
+func FromArray(nodes []Node) Heap {
+	h := &heap{array: nodes}
+	h.heapify(0)
+	h.heapConsistent()
+	return h
+}
