@@ -7,7 +7,7 @@ type heap struct {
 }
 
 func (h *heap) heapConsistent() {
-	if len(h.array) > 1 {
+	if Debug && len(h.array) > 1 {
 		for i := 0; i < len(h.array); i++ {
 			left, right := childrenOf(i)
 			if (h.inHeap(left) && h.array[left].Less(h.array[i])) || (h.inHeap(right) && h.array[right].Less(h.array[i])) {
@@ -74,12 +74,13 @@ func (h *heap) Len() int {
 }
 
 func (h *heap) Push(node Node) {
+	defer h.heapConsistent()
 	h.array = append(h.array, node)
 	h.fixHeapBottomUp(len(h.array) - 1)
-	h.heapConsistent()
 }
 
 func (h *heap) Pop() (node Node) {
+	defer h.heapConsistent()
 	if len(h.array) > 0 {
 		node = h.array[0]
 		h.array[0] = h.array[len(h.array)-1]
@@ -88,10 +89,8 @@ func (h *heap) Pop() (node Node) {
 	} else {
 		node = nil
 	}
-	h.heapConsistent()
 	return node
 }
-
 func (h *heap) heapify(i int) {
 	if !h.isLeaf(i) {
 		left, right := childrenOf(i)
@@ -101,7 +100,15 @@ func (h *heap) heapify(i int) {
 	}
 }
 
-func (h *heap) Heapify() {
+// New :
+func New() Heap {
+	return &heap{}
+}
+
+// FromArray :
+func FromArray(nodes []Node) Heap {
+	h := &heap{array: nodes}
 	h.heapify(0)
 	h.heapConsistent()
+	return h
 }

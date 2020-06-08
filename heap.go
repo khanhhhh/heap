@@ -10,10 +10,7 @@ type Heap interface {
 	Len() int
 	Push(node Node)
 	Pop() (node Node)
-	Heapify()
 }
 
-// NewHeap :
-func NewHeap() (h Heap) {
-	return &heap{}
-}
+// Debug : Mode
+var Debug bool = true
