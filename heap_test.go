@@ -10,7 +10,7 @@ func verify(h Heap) {
 	count := 0
 	last := -1
 	for h.Len() > 0 {
-		current := h.Pop()
+		current, _ := h.Pop()
 		if current < last {
 			panic("fail 1")
 		}
@@ -21,12 +21,12 @@ func verify(h Heap) {
 
 func TestHeap(t *testing.T) {
 	h := New()
-	k1 := h.Push(1)
-	k2 := h.Push(2)
-	k3 := h.Push(3)
-	k4 := h.Push(4)
-	k5 := h.Push(5)
-	k6 := h.Push(6)
+	k1 := h.Push(1, 1)
+	k2 := h.Push(2, 2)
+	k3 := h.Push(3, 3)
+	k4 := h.Push(4, 4)
+	k5 := h.Push(5, 5)
+	k6 := h.Push(6, 6)
 	h.Update(k1, 5)
 	h.Update(k2, 0)
 	h.Update(k3, 2)
@@ -46,7 +46,7 @@ func TestHeapRandom(t *testing.T) {
 		for t := 0; t < numTests; t++ {
 			h := New()
 			for i := 0; i < numValues; i++ {
-				h.Push(rand.Intn(numValues))
+				h.Push(rand.Intn(numValues), nil)
 			}
 			verify(h)
 		}
@@ -58,17 +58,19 @@ func TestHeapRandom(t *testing.T) {
 			for i := 0; i < numValues; i++ {
 				values[i] = rand.Intn(numValues)
 			}
-			h, _, _ := FromArray(values)
+			h := FromArray(values)
 			verify(h)
 		}
 	}()
 	func() {
 		for t := 0; t < numTests; t++ {
+			h := New()
 			values := make([]Value, numValues)
+			keys := make([]Key, numValues)
 			for i := 0; i < numValues; i++ {
 				values[i] = rand.Intn(numValues)
+				keys[i] = h.Push(values[i], nil)
 			}
-			h, values, keys := FromArray(values)
 			for i := 0; i < numValues; i++ {
 				h.Update(keys[rand.Intn(numValues)], rand.Intn(numValues))
 			}

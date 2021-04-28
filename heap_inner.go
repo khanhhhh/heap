@@ -2,16 +2,30 @@ package heap
 
 import "fmt"
 
+type node struct {
+	key   Key
+	value Value
+	data  interface{}
+}
+
+func newNode(index int, value Value, data interface{}) node {
+	keyHolder := index
+	return node{
+		key:   &keyHolder,
+		value: value,
+		data:  data,
+	}
+}
+
 type heap struct {
-	value []Value
-	key   []*int
+	node []node
 }
 
 func (h *heap) heapConsistentAssert() {
-	if Debug && len(h.value) > 1 {
-		for parent := 0; parent < len(h.value); parent++ {
+	if Debug && len(h.node) > 1 {
+		for parent := 0; parent < len(h.node); parent++ {
 			left, right := childrenOf(parent)
-			if (h.isInHeap(left) && h.value[left] < h.value[parent]) || (h.isInHeap(right) && h.value[right] < h.value[parent]) {
+			if (h.isInHeap(left) && h.node[left].value < h.node[parent].value) || (h.isInHeap(right) && h.node[right].value < h.node[parent].value) {
 				fmt.Printf("parent %d left %d right %d\n", parent, left, right)
 				panic("heap inconsistent")
 			}
@@ -29,11 +43,11 @@ func parentOf(child int) (parent int) {
 
 func (h *heap) isLeafNode(index int) bool {
 	left, _ := childrenOf(index)
-	return left >= len(h.value)
+	return left >= len(h.node)
 }
 
 func (h *heap) isInHeap(index int) bool {
-	return index >= 0 && index < len(h.value)
+	return index >= 0 && index < len(h.node)
 }
 
 func (h *heap) fixHeapTopDown(index int) {
@@ -41,17 +55,17 @@ func (h *heap) fixHeapTopDown(index int) {
 		return
 	}
 	left, right := childrenOf(index)
-	var less int = left
-	if h.isInHeap(right) && h.value[right] < h.value[left] {
+	var less = left
+	if h.isInHeap(right) && h.node[right].value < h.node[left].value {
 		less = right
 	}
-	if h.value[less] >= h.value[index] {
+	if h.node[less].value >= h.node[index].value {
 		return
 	}
-	h.value[index], h.value[less] = h.value[less], h.value[index]
-	h.key[index], h.key[less] = h.key[less], h.key[index]
-	*h.key[index] = index
-	*h.key[less] = less
+
+	h.node[index], h.node[less] = h.node[less], h.node[index]
+	*h.node[index].key = index
+	*h.node[less].key = less
 	h.fixHeapTopDown(less)
 }
 
@@ -61,52 +75,49 @@ func (h *heap) fixHeapBottomUp(index int) {
 	}
 	parent := parentOf(index)
 	left, right := childrenOf(parent)
-	var less int = left
-	if h.isInHeap(right) && h.value[right] < h.value[left] {
+	var less = left
+	if h.isInHeap(right) && h.node[right].value < h.node[left].value {
 		less = right
 	}
-	if h.value[less] >= h.value[parent] {
+	if h.node[less].value >= h.node[parent].value {
 		return
 	}
-	h.value[parent], h.value[less] = h.value[less], h.value[parent]
-	h.key[parent], h.key[less] = h.key[less], h.key[parent]
-	*h.key[parent] = parent
-	*h.key[less] = less
+	h.node[parent], h.node[less] = h.node[less], h.node[parent]
+	*h.node[parent].key = parent
+	*h.node[less].key = less
 	h.fixHeapBottomUp(parent)
 }
 
 func (h *heap) Len() int {
-	return len(h.value)
+	return len(h.node)
 }
 
-func (h *heap) Push(value Value) (key Key) {
+func (h *heap) Push(value Value, data interface{}) (key Key) {
 	defer h.heapConsistentAssert()
-	h.value = append(h.value, value)
-	index := len(h.value) - 1
-	h.key = append(h.key, &index)
-	h.fixHeapBottomUp(index)
-	return &index
+	h.node = append(h.node, newNode(len(h.node), value, data))
+	key = h.node[len(h.node)-1].key
+	h.fixHeapBottomUp(len(h.node) - 1)
+	return key
 }
 
-func (h *heap) Pop() (value Value) {
+func (h *heap) Pop() (value Value, data interface{}) {
 	defer h.heapConsistentAssert()
-	if len(h.value) <= 0 {
+	if len(h.node) <= 0 {
 		panic("heap empty")
 	}
-	value = h.value[0]
-	h.value[0], h.value = h.value[len(h.value)-1], h.value[:len(h.value)-1]
-	h.key[0], h.key = h.key[len(h.key)-1], h.key[:len(h.key)-1]
-	if len(h.key) > 0 {
-		*h.key[0] = 0
+	node := h.node[0]
+	h.node[0], h.node = h.node[len(h.node)-1], h.node[:len(h.node)-1]
+	if len(h.node) > 0 {
+		*h.node[0].key = 0
 	}
 	h.fixHeapTopDown(0)
-	return value
+	return node.value, node.data
 }
 
 func (h *heap) Update(key Key, value Value) {
 	defer h.heapConsistentAssert()
-	old := h.value[*key]
-	h.value[*key] = value
+	old := h.node[*key].value
+	h.node[*key].value = value
 	switch {
 	case value < old:
 		h.fixHeapBottomUp(*key)
