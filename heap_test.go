@@ -24,10 +24,16 @@ func TestHeap(t *testing.T) {
 	k1 := h.Push(1)
 	k2 := h.Push(2)
 	k3 := h.Push(3)
-	h.Update(k1, 4)
-	h.Update(k2, 6)
-	h.Update(k3, 5)
-	for i := 0; i < 3; i++ {
+	k4 := h.Push(4)
+	k5 := h.Push(5)
+	k6 := h.Push(6)
+	h.Update(k1, 5)
+	h.Update(k2, 0)
+	h.Update(k3, 2)
+	h.Update(k4, 3)
+	h.Update(k5, 3)
+	h.Update(k6, 7)
+	for h.Len() > 0 {
 		fmt.Println(h.Pop())
 	}
 }
