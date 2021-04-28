@@ -4,50 +4,70 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 )
 
-type Int int
-
-func (i Int) Less(j Node) bool {
-	return i < j.(Int)
-}
-
-func timer(function func()) {
-	t := time.Now()
-	function()
-	fmt.Printf("elapsed time: %v\n", time.Since(t))
+func verify(h Heap) {
+	count := 0
+	last := -1
+	for h.Len() > 0 {
+		current := h.Pop()
+		if current < last {
+			panic("fail 1")
+		}
+		last = current
+		count++
+	}
 }
 
 func TestHeap(t *testing.T) {
-	numHeaps := 1000
-	numNodes := 1000
-	randRange := 1000
-	nodes := make([]Node, numNodes)
-	for i := 0; i < numNodes; i++ {
-		nodes[i] = Int(rand.Intn(randRange))
+	h := New()
+	k1 := h.Push(1)
+	k2 := h.Push(2)
+	k3 := h.Push(3)
+	h.Update(k1, 4)
+	h.Update(k2, 6)
+	h.Update(k3, 5)
+	for i := 0; i < 3; i++ {
+		fmt.Println(h.Pop())
 	}
+}
 
-	timer(func() {
-		for t := 0; t < numHeaps; t++ {
+func TestHeapRandom(t *testing.T) {
+	rand.Seed(1234)
+	numTests := 1000
+	numValues := 1000
+	func() {
+		for t := 0; t < numTests; t++ {
 			h := New()
-			for _, node := range nodes {
-				h.Push(node)
+			for i := 0; i < numValues; i++ {
+				h.Push(rand.Intn(numValues))
 			}
+			verify(h)
 		}
-	})
+	}()
 
-	nodess := make([][]Node, numHeaps)
-	for i := range nodess {
-		nodess[i] = make([]Node, numNodes)
-		for j := range nodess[i] {
-			nodess[i][j] = nodes[j]
+	func() {
+		for t := 0; t < numTests; t++ {
+			values := make([]Value, numValues)
+			for i := 0; i < numValues; i++ {
+				values[i] = rand.Intn(numValues)
+			}
+			h, _, _ := FromArray(values)
+			verify(h)
 		}
-	}
-	timer(func() {
-		for t := 0; t < numHeaps; t++ {
-			h := FromArray(nodess[t])
-			_ = h
+	}()
+	func() {
+		for t := 0; t < numTests; t++ {
+			values := make([]Value, numValues)
+			for i := 0; i < numValues; i++ {
+				values[i] = rand.Intn(numValues)
+			}
+			h, values, keys := FromArray(values)
+			for i := 0; i < numValues; i++ {
+				h.Update(keys[rand.Intn(numValues)], rand.Intn(numValues))
+			}
+
+			verify(h)
 		}
-	})
+	}()
 }
