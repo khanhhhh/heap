@@ -1,19 +1,21 @@
 package heap
 
-// Node :
-type Node interface {
-	Less(other Node) bool
-}
+// Value :
+type Value = int
+
+// Key :
+type Key = *int
+
+// Debug : Mode
+const Debug bool = true
 
 // Heap :
 type Heap interface {
 	Len() int
-	Push(node Node)
-	Pop() (node Node)
+	Push(value Value) (key Key)
+	Pop() (value Value)
+	Update(key Key, value Value)
 }
-
-// Debug : Mode
-var Debug bool = true
 
 // New :
 func New() Heap {
@@ -21,9 +23,17 @@ func New() Heap {
 }
 
 // FromArray :
-func FromArray(nodes []Node) Heap {
-	h := &heap{nodes: nodes}
+func FromArray(array []Value) (Heap, []Value, []Key) {
+	h := &heap{
+		value: make([]Value, len(array)),
+		key:   make([]Key, len(array)),
+	}
+	defer h.heapConsistentAssert()
+	for i := 0; i < len(array); i++ {
+		h.value[i] = array[i]
+		index := i
+		h.key[i] = &index
+	}
 	h.heapify(0)
-	h.heapConsistent()
-	return h
+	return h, h.value, h.key
 }
